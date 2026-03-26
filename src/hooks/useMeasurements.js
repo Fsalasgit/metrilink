@@ -149,7 +149,23 @@ export function useMeasurements() {
   };
 
 
-  
+  const calculateDeviation = (values) => {
+    const nums = values
+      .map(v => Number(v?.value ?? v))
+      .filter(v => !isNaN(v));
+
+    if (nums.length < 2) return null;
+
+    const min = Math.min(...nums);
+    const max = Math.max(...nums);
+
+    return {
+      min,
+      max,
+      deviation: max - min
+    };
+  };
+
 
   return {
     measurements,
@@ -165,6 +181,7 @@ export function useMeasurements() {
     applyMeasurement,
     updateNote,
     clearAll,
+    calculateDeviation
   };
 }
 

@@ -5,6 +5,7 @@ import "./App.css";
 
 import { useMeasurements } from "./hooks/useMeasurements";
 import { useBluetooth } from "./hooks/useBluetooth";
+import { syncMeasurementsToSheet } from "./services/syncService";
 
 import SplashPage from "./pages/SplashPage";
 import ProjectsPage from "./pages/ProjectsPage";
@@ -38,7 +39,7 @@ function App() {
     if (!meta || !meta.id || !meta.field) return;
     console.log("📏 handleNewMeasurement:", distance, meta);
     applyMeasurement(meta.id, meta.field, distance);
-    clearWaiting(); // limpiamos "esperando"
+    // clearWaiting(); // limpiamos "esperando"
   };
 
   const {
@@ -59,6 +60,18 @@ function App() {
       setIsFullscreen(false);
     }
   };
+
+  
+  const handleSync = async () => {
+    try {
+      await syncMeasurementsToSheet(vanos);
+      alert("Datos enviados correctamente");
+    } catch (error) {
+      console.error(error);
+      alert("Error al enviar los datos");
+    }
+  };
+
 
   // Qué pantalla mostramos
   let content = null;
@@ -113,6 +126,11 @@ function App() {
           })
         }
         onChangeNota={(nota) => updateNote(selectedMeasurement.id, nota)}
+
+        onManualMeasure={(field, valueMm) => {
+          applyMeasurement(selectedMeasurement.id, field, valueMm, "manual");
+          clearWaiting();
+        }}
       />
     );
   }
@@ -132,6 +150,7 @@ function App() {
                 onClear={clearAll}
                 isFullscreen={isFullscreen}
                 onFullscreen={toggleFullscreen}
+                onSync={handleSync}
               />
               <Typography
                 variant="subtitle2"
