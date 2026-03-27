@@ -5,7 +5,11 @@ import {
   Button,
   Card,
   CardContent,
+  FormControl,
   IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
   TextField,
   Typography,
 } from "@mui/material";
@@ -42,7 +46,9 @@ export default function VanoDetailPage({
   onBack,
   onEditField,
   onChangeNota,
-  onManualMeasure, // (field, valueMm) => guardar manual desde App.jsx
+  onChangeRevoque,
+  onChangeTapajunta,
+  onManualMeasure,
 }) {
   const [manualMode, setManualMode] = useState(false);
 
@@ -67,15 +73,23 @@ export default function VanoDetailPage({
   // ✅ AUTO-SECUENCIA SOLO SI NO ESTÁ EN MODO MANUAL
   useEffect(() => {
     if (!measurement) return;
-    if (manualMode) return; // ⛔ corta secuencia automática
-    if (!nextMissingField) return; // secuencia terminada
+    if (manualMode) return;
+    if (!nextMissingField) return;
 
-    // si ya estamos esperando una medida de ESTE vano, no pisar
-    if (waitingForMeasurement?.id === measurement.id) return;
+    const alreadyWaitingThisExactField =
+      waitingForMeasurement?.id === measurement.id &&
+      waitingForMeasurement?.field === nextMissingField;
 
-    // arrancar/continuar esperando el siguiente campo
+    if (alreadyWaitingThisExactField) return;
+
     onEditField(nextMissingField);
-  }, [measurement, nextMissingField, waitingForMeasurement, onEditField, manualMode]);
+  }, [
+    measurement,
+    nextMissingField,
+    waitingForMeasurement,
+    onEditField,
+    manualMode,
+  ]);
 
   // Mensaje “Esperando medida …”
   const waitingMsg = useMemo(() => {
@@ -257,6 +271,52 @@ export default function VanoDetailPage({
                 ? `${heightStats.dev} mm (min ${heightStats.min} / max ${heightStats.max})`
                 : "-"}
             </Typography>
+          </Box>
+
+          <Box mt={2}>
+            <Typography
+              variant="caption"
+              fontWeight={600}
+              display="block"
+              mb={1}
+              align="right"
+            >
+              TERMINACIONES
+            </Typography>
+
+            <Box display="flex" gap={2} flexWrap="wrap">
+              <FormControl fullWidth size="small">
+                <InputLabel id="revoque-label">REVOQUE</InputLabel>
+                <Select
+                  labelId="revoque-label"
+                  value={measurement?.revoque || ""}
+                  label="REVOQUE"
+                  onChange={(e) => onChangeRevoque?.(e.target.value)}
+                >
+                  <MenuItem value="">-</MenuItem>
+                  <MenuItem value="FINO">FINO</MenuItem>
+                  <MenuItem value="GRUESO">GRUESO</MenuItem>
+                </Select>
+              </FormControl>
+
+              <FormControl fullWidth size="small">
+                <InputLabel id="tapajunta-label">TAPAJUNTA</InputLabel>
+                <Select
+                  labelId="tapajunta-label"
+                  value={measurement?.tapajunta || ""}
+                  label="TAPAJUNTA"
+                  onChange={(e) => onChangeTapajunta?.(e.target.value)}
+                >
+                  <MenuItem value="">-</MenuItem>
+                  <MenuItem value="NO">NO</MenuItem>
+                  <MenuItem value="COMPLETO">COMPLETO</MenuItem>
+                  <MenuItem value="LATERALES Y SUPERIOR">LATERALES Y SUPERIOR</MenuItem>
+                  <MenuItem value="LATERALES E INFERIOR">LATERALES E INFERIOR</MenuItem>
+                  <MenuItem value="LATERALES">LATERALES</MenuItem>
+                  <MenuItem value="SUPERIOR">SUPERIOR</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
           </Box>
 
           <Box mt={2}>

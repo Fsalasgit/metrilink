@@ -1,5 +1,5 @@
 export async function syncMeasurementsToSheet(measurements) {
-  const url = "https://script.google.com/macros/s/AKfycbwb6se2qiDJ_L5z-bXeVY4H_Q6kd2R-PhJNSlfp1VfqOF7dlI1j50lr9nYfS6V8fXHyhw/exec";
+  const url = "https://script.google.com/macros/s/AKfycbwr97zjI1gUuwV3DO4VX-xOv71WgyFZCh4LFepj3DC7B-9CzKMPcx5uzos5sD965Yls5A/exec";
 
   const payload = {
     token: "MI_TOKEN_SEGURO",

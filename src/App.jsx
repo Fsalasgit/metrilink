@@ -31,15 +31,18 @@ function App() {
     addVano,
     applyMeasurement,
     updateNote,
+    updateField,
     clearAll,
   } = useMeasurements();
 
   // función llamada cuando el GLM devuelve una medición
   const handleNewMeasurement = (distance, meta) => {
     if (!meta || !meta.id || !meta.field) return;
+
     console.log("📏 handleNewMeasurement:", distance, meta);
+
     applyMeasurement(meta.id, meta.field, distance);
-    // clearWaiting(); // limpiamos "esperando"
+    clearWaiting();
   };
 
   const {
@@ -126,7 +129,12 @@ function App() {
           })
         }
         onChangeNota={(nota) => updateNote(selectedMeasurement.id, nota)}
-
+        onChangeRevoque={(value) =>
+          updateField(selectedMeasurement.id, "revoque", value)
+        }
+        onChangeTapajunta={(value) =>
+          updateField(selectedMeasurement.id, "tapajunta", value)
+        }
         onManualMeasure={(field, valueMm) => {
           applyMeasurement(selectedMeasurement.id, field, valueMm, "manual");
           clearWaiting();

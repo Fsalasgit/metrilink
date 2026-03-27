@@ -90,7 +90,8 @@ export function useMeasurements() {
 
       desviacion_ancho: null,
       desviacion_alto: null,
-
+      revoque: "",
+      tapajunta: "",
       nota: "",
       fecha_ultima_lectura: null,
       ancho: null,
@@ -166,6 +167,21 @@ export function useMeasurements() {
     };
   };
 
+  const updateField = (id, field, value) => {
+  const updated = measurements.map((m) =>
+    m.id === id
+      ? {
+          ...m,
+          [field]: value,
+          fecha_ultima_lectura: new Date().toLocaleString(),
+        }
+      : m
+  );
+
+  setMeasurements(updated);
+  saveMeasurement(updated);
+};
+
 
   return {
     measurements,
@@ -180,6 +196,7 @@ export function useMeasurements() {
     addVano,
     applyMeasurement,
     updateNote,
+    updateField,
     clearAll,
     calculateDeviation
   };
