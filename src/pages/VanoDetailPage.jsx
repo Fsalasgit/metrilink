@@ -48,6 +48,9 @@ export default function VanoDetailPage({
   onChangeNota,
   onChangeRevoque,
   onChangeTapajunta,
+  onChangeApertura,
+  onChangeEmbutida,
+  onChangeNpt,
   onManualMeasure,
 }) {
   const [manualMode, setManualMode] = useState(false);
@@ -227,6 +230,107 @@ export default function VanoDetailPage({
             );
           })}
 
+          <Box mt={2}>
+            <Typography
+              variant="caption"
+              fontWeight={600}
+              display="block"
+              mb={1}
+              align="right"
+            >
+              TERMINACIONES
+            </Typography>
+
+            <Box display="flex" gap={2} flexWrap="wrap">
+              <FormControl fullWidth size="small">
+                <InputLabel id="revoque-label">REVOQUE</InputLabel>
+                <Select
+                  labelId="revoque-label"
+                  value={measurement?.revoque || ""}
+                  label="REVOQUE"
+                  onChange={(e) => onChangeRevoque?.(e.target.value)}
+                >
+                  <MenuItem value="">-</MenuItem>
+                  <MenuItem value="FINO">FINO</MenuItem>
+                  <MenuItem value="GRUESO">GRUESO</MenuItem>
+                </Select>
+              </FormControl>
+
+              <FormControl fullWidth size="small">
+                <InputLabel id="tapajunta-label">TAPAJUNTA</InputLabel>
+                <Select
+                  labelId="tapajunta-label"
+                  value={measurement?.tapajunta || ""}
+                  label="TAPAJUNTA"
+                  onChange={(e) => onChangeTapajunta?.(e.target.value)}
+                >
+                  <MenuItem value="">-</MenuItem>
+                  <MenuItem value="NO">NO</MenuItem>
+                  <MenuItem value="COMPLETO">COMPLETO</MenuItem>
+                  <MenuItem value="LATERALES Y SUPERIOR">LATERALES Y SUPERIOR</MenuItem>
+                  <MenuItem value="LATERALES E INFERIOR">LATERALES E INFERIOR</MenuItem>
+                  <MenuItem value="LATERALES">LATERALES</MenuItem>
+                  <MenuItem value="SUPERIOR">SUPERIOR</MenuItem>
+                </Select>
+              </FormControl>
+
+              <FormControl fullWidth size="small">
+                <InputLabel id="apertura-label">APERTURA</InputLabel>
+                <Select
+                  labelId="apertura-label"
+                  value={measurement?.apertura || ""}
+                  label="APERTURA"
+                  onChange={(e) => onChangeApertura?.(e.target.value)}
+                >
+                  <MenuItem value="">-</MenuItem>
+                  <MenuItem value="INTERIOR DERECHA">INTERIOR DERECHA</MenuItem>
+                  <MenuItem value="INTERIOR IZQUIERDA">INTERIOR IZQUIERDA</MenuItem>
+                  <MenuItem value="NO CORRESPONDE">NO CORRESPONDE</MenuItem>
+                  <MenuItem value="EXTERIOR DERECHA">EXTERIOR DERECHA</MenuItem>
+                  <MenuItem value="EXTERIOR IZQUIERDA">EXTERIOR IZQUIERDA</MenuItem>
+                </Select>
+              </FormControl>
+
+              <FormControl fullWidth size="small">
+                <InputLabel id="embutida-label">EMBUTIDA</InputLabel>
+                <Select
+                  labelId="embutida-label"
+                  value={measurement?.embutida || ""}
+                  label="EMBUTIDA"
+                  onChange={(e) => onChangeEmbutida?.(e.target.value)}
+                >
+                  <MenuItem value="">-</MenuItem>
+                  <MenuItem value="SI">SI</MenuItem>
+                  <MenuItem value="NO">NO</MenuItem>
+                </Select>
+              </FormControl>
+
+              
+
+            </Box>
+
+            
+          </Box>
+
+          <Box mt={2}>
+            <Typography
+              variant="caption"
+              fontWeight={600}
+              display="block"
+              mb={0.5}
+              align="right"
+            >
+              COMENTARIOS
+            </Typography>
+            <TextField
+              multiline
+              minRows={2}
+              fullWidth
+              value={measurement?.nota || ""}
+              onChange={(e) => onChangeNota(e.target.value)}
+            />
+          </Box>
+
           {/* ✅ BLOQUE DESVÍO / FALSA ESCUADRA */}
           <Box
             sx={{
@@ -271,71 +375,6 @@ export default function VanoDetailPage({
                 ? `${heightStats.dev} mm (min ${heightStats.min} / max ${heightStats.max})`
                 : "-"}
             </Typography>
-          </Box>
-
-          <Box mt={2}>
-            <Typography
-              variant="caption"
-              fontWeight={600}
-              display="block"
-              mb={1}
-              align="right"
-            >
-              TERMINACIONES
-            </Typography>
-
-            <Box display="flex" gap={2} flexWrap="wrap">
-              <FormControl fullWidth size="small">
-                <InputLabel id="revoque-label">REVOQUE</InputLabel>
-                <Select
-                  labelId="revoque-label"
-                  value={measurement?.revoque || ""}
-                  label="REVOQUE"
-                  onChange={(e) => onChangeRevoque?.(e.target.value)}
-                >
-                  <MenuItem value="">-</MenuItem>
-                  <MenuItem value="FINO">FINO</MenuItem>
-                  <MenuItem value="GRUESO">GRUESO</MenuItem>
-                </Select>
-              </FormControl>
-
-              <FormControl fullWidth size="small">
-                <InputLabel id="tapajunta-label">TAPAJUNTA</InputLabel>
-                <Select
-                  labelId="tapajunta-label"
-                  value={measurement?.tapajunta || ""}
-                  label="TAPAJUNTA"
-                  onChange={(e) => onChangeTapajunta?.(e.target.value)}
-                >
-                  <MenuItem value="">-</MenuItem>
-                  <MenuItem value="NO">NO</MenuItem>
-                  <MenuItem value="COMPLETO">COMPLETO</MenuItem>
-                  <MenuItem value="LATERALES Y SUPERIOR">LATERALES Y SUPERIOR</MenuItem>
-                  <MenuItem value="LATERALES E INFERIOR">LATERALES E INFERIOR</MenuItem>
-                  <MenuItem value="LATERALES">LATERALES</MenuItem>
-                  <MenuItem value="SUPERIOR">SUPERIOR</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-          </Box>
-
-          <Box mt={2}>
-            <Typography
-              variant="caption"
-              fontWeight={600}
-              display="block"
-              mb={0.5}
-              align="right"
-            >
-              COMENTARIOS
-            </Typography>
-            <TextField
-              multiline
-              minRows={2}
-              fullWidth
-              value={measurement?.nota || ""}
-              onChange={(e) => onChangeNota(e.target.value)}
-            />
           </Box>
 
           {/* ✅ mensaje final */}
