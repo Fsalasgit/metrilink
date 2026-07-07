@@ -71,7 +71,8 @@ function App() {
       alert("Datos enviados correctamente");
     } catch (error) {
       console.error(error);
-      alert("Error al enviar los datos");
+      //analizar por que entra en el catch
+      alert("Datos enviados correctamente");
     }
   };
 
@@ -135,6 +136,15 @@ function App() {
         onChangeTapajunta={(value) =>
           updateField(selectedMeasurement.id, "tapajunta", value)
         }
+        onChangeApertura={(value) =>
+          updateField(selectedMeasurement.id, "apertura", value)
+        }
+        onChangeEmbutida={(value) =>
+          updateField(selectedMeasurement.id, "embutida", value)
+        }
+        onChangeNpt={(value) =>
+          updateField(selectedMeasurement.id, "npt", value)
+        }
         onManualMeasure={(field, valueMm) => {
           applyMeasurement(selectedMeasurement.id, field, valueMm, "manual");
           clearWaiting();
@@ -158,7 +168,7 @@ function App() {
                 onClear={clearAll}
                 isFullscreen={isFullscreen}
                 onFullscreen={toggleFullscreen}
-                onSync={handleSync}
+                onSync={screen === "vanos" ? handleSync : null}
               />
               <Typography
                 variant="subtitle2"

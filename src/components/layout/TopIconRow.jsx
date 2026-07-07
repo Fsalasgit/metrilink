@@ -15,7 +15,7 @@ export default function TopIconRow({
     <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
       <ConnectButton onConnect={onConnect} />
       <ClearButton onClear={onClear} />
-      <SyncButton onSync={onSync} />
+      {onSync && <SyncButton onSync={onSync} />}
       <FullScreenButton isFullscreen={isFullscreen} onToggle={onFullscreen} />
     </Box>
   );
