@@ -14,6 +14,7 @@ import {
   Typography,
 } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import VanoCameraButton from "../components/camera/VanoCameraButton";
 
 const ORDER = ["ancho_1", "ancho_2", "ancho_3", "alto_1", "alto_2", "alto_3"];
 
@@ -52,6 +53,10 @@ export default function VanoDetailPage({
   onChangeEmbutida,
   onChangeNpt,
   onManualMeasure,
+  onCapturePhoto,
+  uploadingPhoto,
+  photoMessage,
+  photoError,
 }) {
   const [manualMode, setManualMode] = useState(false);
 
@@ -330,6 +335,25 @@ export default function VanoDetailPage({
               onChange={(e) => onChangeNota(e.target.value)}
             />
           </Box>
+
+          <VanoCameraButton
+            onCapture={onCapturePhoto}
+            disabled={!measurement || uploadingPhoto}
+          />
+
+          {photoMessage && (
+            <Typography
+              variant="caption"
+              display="block"
+              sx={{
+                mt: 1,
+                color: photoError ? "error.main" : "text.secondary",
+              }}
+            >
+              {photoMessage}
+            </Typography>
+          )}
+
 
           {/* ✅ BLOQUE DESVÍO / FALSA ESCUADRA */}
           <Box
