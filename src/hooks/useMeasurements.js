@@ -96,6 +96,7 @@ export function useMeasurements() {
       embutida: "",
       npt: "",
       nota: "",
+      fotos: [],
       fecha_ultima_lectura: null,
       ancho: null,
       alto: null,
@@ -185,6 +186,21 @@ export function useMeasurements() {
   saveMeasurement(updated);
 };
 
+const addPhotoToMeasurement = (id, photoData) => {
+  const updated = measurements.map((m) =>
+    m.id === id
+      ? {
+          ...m,
+          fotos: [...(m.fotos || []), photoData],
+          fecha_ultima_lectura: new Date().toLocaleString(),
+        }
+      : m
+  );
+
+  setMeasurements(updated);
+  saveMeasurement(updated);
+};
+
 
   return {
     measurements,
@@ -201,7 +217,8 @@ export function useMeasurements() {
     updateNote,
     updateField,
     clearAll,
-    calculateDeviation
+    calculateDeviation,
+    addPhotoToMeasurement
   };
 }
 

@@ -15,6 +15,8 @@ import VanoDetailPage from "./pages/VanoDetailPage";
 import HeaderBar from "./components/layout/HeaderBar";
 import TopIconRow from "./components/layout/TopIconRow";
 
+import { useVanoPhotoUpload } from "./hooks/useVanoPhotoUpload";
+
 function App() {
   const [screen, setScreen] = useState("splash");
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -32,8 +34,20 @@ function App() {
     applyMeasurement,
     updateNote,
     updateField,
+    addPhotoToMeasurement,
     clearAll,
   } = useMeasurements();
+
+  const {
+    uploadingPhoto,
+    photoMessage,
+    photoError,
+    handleCapturePhoto,
+  } = useVanoPhotoUpload({
+    selectedProject,
+    selectedMeasurement,
+    addPhotoToMeasurement,
+  });
 
   // función llamada cuando el GLM devuelve una medición
   const handleNewMeasurement = (distance, meta) => {
@@ -149,6 +163,10 @@ function App() {
           applyMeasurement(selectedMeasurement.id, field, valueMm, "manual");
           clearWaiting();
         }}
+        onCapturePhoto={handleCapturePhoto}
+        uploadingPhoto={uploadingPhoto}
+        photoMessage={photoMessage}
+        photoError={photoError}
       />
     );
   }
