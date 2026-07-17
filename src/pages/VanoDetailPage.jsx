@@ -1,6 +1,7 @@
 // src/pages/VanoDetailPage.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Alert,
   Box,
   Button,
   Card,
@@ -14,6 +15,8 @@ import {
   Typography,
 } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import MicIcon from "@mui/icons-material/Mic";
+import StopIcon from "@mui/icons-material/Stop";
 import VanoCameraButton from "../components/camera/VanoCameraButton";
 
 const ORDER = ["ancho_1", "ancho_2", "ancho_3", "alto_1", "alto_2", "alto_3"];
@@ -25,6 +28,44 @@ const LABEL = {
   alto_1: "ALTO 1",
   alto_2: "ALTO 2",
   alto_3: "ALTO 3",
+};
+
+const limpiarEspacios = (texto = "") => {
+  return String(texto).replace(/\s+/g, " ").trim();
+};
+
+const unirTextoSinDuplicar = (textoBase, textoNuevo) => {
+  const base = limpiarEspacios(textoBase);
+  const nuevo = limpiarEspacios(textoNuevo);
+
+  if (!base) return nuevo;
+  if (!nuevo) return base;
+
+  if (base.toLowerCase().endsWith(nuevo.toLowerCase())) {
+    return base;
+  }
+
+  if (nuevo.toLowerCase().startsWith(base.toLowerCase())) {
+    return nuevo;
+  }
+
+  const palabrasBase = base.split(" ");
+  const palabrasNuevo = nuevo.split(" ");
+
+  const maxOverlap = Math.min(palabrasBase.length, palabrasNuevo.length);
+
+  for (let i = maxOverlap; i > 0; i--) {
+    const finalBase = palabrasBase.slice(-i).join(" ").toLowerCase();
+    const inicioNuevo = palabrasNuevo.slice(0, i).join(" ").toLowerCase();
+
+    if (finalBase === inicioNuevo) {
+      return limpiarEspacios(
+        [...palabrasBase, ...palabrasNuevo.slice(i)].join(" ")
+      );
+    }
+  }
+
+  return limpiarEspacios(`${base} ${nuevo}`);
 };
 
 const calcMinMaxDev = (values) => {
@@ -59,6 +100,96 @@ export default function VanoDetailPage({
   photoError,
 }) {
   const [manualMode, setManualMode] = useState(false);
+
+  // ✅ Estados para comentario por voz
+  const [escuchandoComentario, setEscuchandoComentario] = useState(false);
+  const [textoInterinoComentario, setTextoInterinoComentario] = useState("");
+  const [errorVozComentario, setErrorVozComentario] = useState("");
+
+  const recognitionComentarioRef = useRef(null);
+  const textoComentarioFinalRef = useRef("");
+  const onChangeNotaRef = useRef(onChangeNota);
+
+  useEffect(() => {
+    onChangeNotaRef.current = onChangeNota;
+  }, [onChangeNota]);
+
+  useEffect(() => {
+    textoComentarioFinalRef.current = measurement?.nota || "";
+  }, [measurement?.id, measurement?.nota]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setErrorVozComentario(
+        "Tu navegador no permite comentario por voz. Probá con Chrome o Edge."
+      );
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+
+    recognition.lang = "es-AR";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    recognition.onresult = (event) => {
+      let textoFinal = "";
+      let textoTemporal = "";
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const texto = event.results[i][0].transcript;
+
+        if (event.results[i].isFinal) {
+          textoFinal += ` ${texto}`;
+        } else {
+          textoTemporal += ` ${texto}`;
+        }
+      }
+
+      textoFinal = limpiarEspacios(textoFinal);
+      textoTemporal = limpiarEspacios(textoTemporal);
+
+      if (textoFinal) {
+        const textoUnificado = unirTextoSinDuplicar(
+          textoComentarioFinalRef.current,
+          textoFinal
+        );
+
+        textoComentarioFinalRef.current = textoUnificado;
+        onChangeNotaRef.current?.(textoUnificado);
+      }
+
+      setTextoInterinoComentario(textoTemporal);
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Error de reconocimiento de voz en comentario:", event.error);
+      setErrorVozComentario(
+        "No se pudo tomar el comentario por voz. Revisá permisos del micrófono."
+      );
+      setEscuchandoComentario(false);
+    };
+
+    recognition.onend = () => {
+      setEscuchandoComentario(false);
+      setTextoInterinoComentario("");
+    };
+
+    recognitionComentarioRef.current = recognition;
+
+    return () => {
+      try {
+        recognition.stop();
+      } catch (error) {
+        // Evita errores si el reconocimiento ya estaba detenido.
+      }
+    };
+  }, []);
 
   const rows = useMemo(
     () => [
@@ -141,6 +272,61 @@ export default function VanoDetailPage({
     ]);
   }, [measurement]);
 
+  const iniciarComentarioVoz = () => {
+    if (!measurement) return;
+
+    if (!recognitionComentarioRef.current) {
+      setErrorVozComentario(
+        "El comentario por voz no está disponible en este navegador."
+      );
+      return;
+    }
+
+    textoComentarioFinalRef.current = measurement?.nota || "";
+    setErrorVozComentario("");
+    setTextoInterinoComentario("");
+
+    try {
+      recognitionComentarioRef.current.start();
+      setEscuchandoComentario(true);
+    } catch (error) {
+      console.error("Error al iniciar micrófono para comentario:", error);
+      setErrorVozComentario("No se pudo iniciar el micrófono.");
+      setEscuchandoComentario(false);
+    }
+  };
+
+  const detenerComentarioVoz = () => {
+    if (recognitionComentarioRef.current) {
+      try {
+        recognitionComentarioRef.current.stop();
+      } catch (error) {
+        // Evita errores si ya estaba detenido.
+      }
+    }
+
+    setEscuchandoComentario(false);
+    setTextoInterinoComentario("");
+  };
+
+  const limpiarComentario = () => {
+    textoComentarioFinalRef.current = "";
+    onChangeNota?.("");
+    setTextoInterinoComentario("");
+    setErrorVozComentario("");
+  };
+
+  const handleNotaManual = (e) => {
+    const value = e.target.value;
+    textoComentarioFinalRef.current = value;
+    onChangeNota?.(value);
+  };
+
+  const handleBack = () => {
+    detenerComentarioVoz();
+    onBack?.();
+  };
+
   const handleRowClick = (field) => {
     // ✅ Si manual está activo: pedir valor por prompt y guardar
     if (manualMode) {
@@ -171,7 +357,7 @@ export default function VanoDetailPage({
         <CardContent sx={{ py: 1 }}>
           <Box display="flex" alignItems="center" justifyContent="space-between">
             <Box display="flex" alignItems="center">
-              <IconButton size="small" onClick={onBack}>
+              <IconButton size="small" onClick={handleBack}>
                 <ArrowBackIosNewIcon fontSize="small" />
               </IconButton>
               <Typography variant="body2" fontWeight={600}>
@@ -309,12 +495,7 @@ export default function VanoDetailPage({
                   <MenuItem value="NO">NO</MenuItem>
                 </Select>
               </FormControl>
-
-              
-
             </Box>
-
-            
           </Box>
 
           <Box mt={2}>
@@ -327,13 +508,69 @@ export default function VanoDetailPage({
             >
               COMENTARIOS
             </Typography>
+
+            <Box display="flex" gap={1} mb={1}>
+              {!escuchandoComentario ? (
+                <Button
+                  size="small"
+                  variant="contained"
+                  startIcon={<MicIcon />}
+                  onClick={iniciarComentarioVoz}
+                  disabled={!measurement}
+                  sx={{
+                    bgcolor: "#1e3a8a",
+                    borderRadius: 0,
+                    "&:hover": {
+                      bgcolor: "#1d4ed8",
+                    },
+                  }}
+                >
+                  Agregar comentario por voz
+                </Button>
+              ) : (
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="error"
+                  startIcon={<StopIcon />}
+                  onClick={detenerComentarioVoz}
+                  sx={{ borderRadius: 0 }}
+                >
+                  Detener
+                </Button>
+              )}
+
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={limpiarComentario}
+                disabled={!measurement || escuchandoComentario}
+                sx={{ borderRadius: 0 }}
+              >
+                Limpiar
+              </Button>
+            </Box>
+
+            {errorVozComentario && (
+              <Alert severity="warning" sx={{ mb: 1 }}>
+                {errorVozComentario}
+              </Alert>
+            )}
+
             <TextField
               multiline
               minRows={2}
               fullWidth
               value={measurement?.nota || ""}
-              onChange={(e) => onChangeNota(e.target.value)}
+              onChange={handleNotaManual}
+              placeholder="Escribí o dictá un comentario del vano..."
             />
+
+            {textoInterinoComentario && (
+              <Alert severity="info" sx={{ mt: 1 }}>
+                Escuchando: {textoInterinoComentario}
+              </Alert>
+            )}
           </Box>
 
           <VanoCameraButton
@@ -353,7 +590,6 @@ export default function VanoDetailPage({
               {photoMessage}
             </Typography>
           )}
-
 
           {/* ✅ BLOQUE DESVÍO / FALSA ESCUADRA */}
           <Box
@@ -413,7 +649,7 @@ export default function VanoDetailPage({
       <Box display="flex" justifyContent="center" mt={2}>
         <Button
           sx={{ bgcolor: "#000", color: "#fff", borderRadius: 0, px: 6 }}
-          onClick={onBack}
+          onClick={handleBack}
         >
           OK
         </Button>
