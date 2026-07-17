@@ -5,6 +5,10 @@ import {
   Button,
   Card,
   CardContent,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
   IconButton,
   InputLabel,
@@ -14,6 +18,9 @@ import {
   Typography,
 } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import CloseIcon from "@mui/icons-material/Close";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 import VanoCameraButton from "../components/camera/VanoCameraButton";
 
 const ORDER = ["ancho_1", "ancho_2", "ancho_3", "alto_1", "alto_2", "alto_3"];
@@ -40,6 +47,34 @@ const calcMinMaxDev = (values) => {
   return { min, max, dev: max - min };
 };
 
+const getDriveFileId = (photo) => {
+  if (photo?.fileId) return photo.fileId;
+
+  const match = String(photo?.fileUrl || "").match(/\/d\/([^/]+)/);
+  return match?.[1] || null;
+};
+
+const getDrivePreviewUrl = (photo) => {
+  const fileId = getDriveFileId(photo);
+
+  if (fileId) {
+    return `https://drive.google.com/thumbnail?id=${encodeURIComponent(
+      fileId
+    )}&sz=w1600`;
+  }
+
+  return photo?.fileUrl || "";
+};
+
+const formatPhotoDate = (value) => {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+
+  return date.toLocaleString("es-AR");
+};
+
 export default function VanoDetailPage({
   projectId,
   measurement,
@@ -59,6 +94,12 @@ export default function VanoDetailPage({
   photoError,
 }) {
   const [manualMode, setManualMode] = useState(false);
+  const [photoModalOpen, setPhotoModalOpen] = useState(false);
+
+  const photos = useMemo(
+    () => (Array.isArray(measurement?.fotos) ? measurement.fotos : []),
+    [measurement]
+  );
 
   const rows = useMemo(
     () => [
@@ -341,6 +382,19 @@ export default function VanoDetailPage({
             disabled={!measurement || uploadingPhoto}
           />
 
+          <Button
+            fullWidth
+            variant="outlined"
+            startIcon={<PhotoLibraryIcon />}
+            disabled={photos.length === 0}
+            onClick={() => setPhotoModalOpen(true)}
+            sx={{ mt: 1, borderRadius: 0 }}
+          >
+            {photos.length > 0
+              ? `VER FOTOS (${photos.length})`
+              : "SIN FOTOS CARGADAS"}
+          </Button>
+
           {photoMessage && (
             <Typography
               variant="caption"
@@ -418,6 +472,111 @@ export default function VanoDetailPage({
           OK
         </Button>
       </Box>
+
+      <Dialog
+        open={photoModalOpen}
+        onClose={() => setPhotoModalOpen(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+            m: 1,
+            width: "calc(100% - 16px)",
+            maxHeight: "92vh",
+          },
+        }}
+      >
+        <DialogTitle sx={{ pr: 6 }}>
+          Fotos del vano {measurement?.n_vano}
+          <IconButton
+            aria-label="Cerrar"
+            onClick={() => setPhotoModalOpen(false)}
+            sx={{ position: "absolute", right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent dividers>
+          {photos.length === 0 ? (
+            <Typography align="center">No hay fotos cargadas.</Typography>
+          ) : (
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
+                gap: 2,
+              }}
+            >
+              {photos.map((photo, index) => {
+                const previewUrl = getDrivePreviewUrl(photo);
+                const driveUrl = photo?.fileUrl || previewUrl;
+
+                return (
+                  <Card key={photo?.fileId || `${photo?.fileName}-${index}`}>
+                    <Box
+                      component="a"
+                      href={driveUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{ display: "block", textDecoration: "none" }}
+                    >
+                      <Box
+                        component="img"
+                        src={previewUrl}
+                        alt={photo?.fileName || `Foto ${index + 1}`}
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
+                        sx={{
+                          display: "block",
+                          width: "100%",
+                          height: 220,
+                          objectFit: "contain",
+                          bgcolor: "#f2f2f2",
+                          cursor: "pointer",
+                        }}
+                      />
+                    </Box>
+
+                    <CardContent sx={{ py: 1.25, "&:last-child": { pb: 1.25 } }}>
+                      <Typography
+                        variant="body2"
+                        fontWeight={700}
+                        noWrap
+                        title={photo?.fileName || ""}
+                      >
+                        {photo?.fileName || `Foto ${index + 1}`}
+                      </Typography>
+
+                      {photo?.fecha && (
+                        <Typography variant="caption" color="text.secondary">
+                          {formatPhotoDate(photo.fecha)}
+                        </Typography>
+                      )}
+
+                      <Button
+                        component="a"
+                        href={driveUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        size="small"
+                        endIcon={<OpenInNewIcon />}
+                        sx={{ mt: 0.5, px: 0 }}
+                      >
+                        Abrir en Drive
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </Box>
+          )}
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={() => setPhotoModalOpen(false)}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
