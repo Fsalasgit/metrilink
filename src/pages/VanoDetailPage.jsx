@@ -9,6 +9,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  CircularProgress,
   FormControl,
   IconButton,
   InputLabel,
@@ -21,6 +22,7 @@ import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import CloseIcon from "@mui/icons-material/Close";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import VanoCameraButton from "../components/camera/VanoCameraButton";
 
 const ORDER = ["ancho_1", "ancho_2", "ancho_3", "alto_1", "alto_2", "alto_3"];
@@ -92,9 +94,13 @@ export default function VanoDetailPage({
   uploadingPhoto,
   photoMessage,
   photoError,
+  onDeletePhoto,
 }) {
   const [manualMode, setManualMode] = useState(false);
   const [photoModalOpen, setPhotoModalOpen] = useState(false);
+  const [photoToDelete, setPhotoToDelete] = useState(null);
+  const [deletingPhoto, setDeletingPhoto] = useState(false);
+  const [deletePhotoError, setDeletePhotoError] = useState("");
 
   const photos = useMemo(
     () => (Array.isArray(measurement?.fotos) ? measurement.fotos : []),
@@ -204,6 +210,25 @@ export default function VanoDetailPage({
 
     // ✅ Caso normal: láser
     onEditField(field);
+  };
+
+  const handleConfirmDeletePhoto = async () => {
+    if (!photoToDelete || deletingPhoto) return;
+
+    setDeletingPhoto(true);
+    setDeletePhotoError("");
+
+    try {
+      await onDeletePhoto?.(photoToDelete);
+      setPhotoToDelete(null);
+    } catch (error) {
+      console.error("Error eliminando la foto:", error);
+      setDeletePhotoError(
+        error?.message || "No se pudo eliminar la foto. Intentá nuevamente."
+      );
+    } finally {
+      setDeletingPhoto(false);
+    }
   };
 
   return (
@@ -554,17 +579,40 @@ export default function VanoDetailPage({
                         </Typography>
                       )}
 
-                      <Button
-                        component="a"
-                        href={driveUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        size="small"
-                        endIcon={<OpenInNewIcon />}
-                        sx={{ mt: 0.5, px: 0 }}
+                      <Box
+                        sx={{
+                          mt: 0.5,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 1,
+                        }}
                       >
-                        Abrir en Drive
-                      </Button>
+                        <Button
+                          component="a"
+                          href={driveUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          size="small"
+                          endIcon={<OpenInNewIcon />}
+                          sx={{ px: 0 }}
+                        >
+                          Abrir en Drive
+                        </Button>
+
+                        <Button
+                          color="error"
+                          size="small"
+                          startIcon={<DeleteOutlineIcon />}
+                          onClick={() => {
+                            setDeletePhotoError("");
+                            setPhotoToDelete(photo);
+                          }}
+                          disabled={deletingPhoto}
+                        >
+                          Eliminar
+                        </Button>
+                      </Box>
                     </CardContent>
                   </Card>
                 );
@@ -575,6 +623,66 @@ export default function VanoDetailPage({
 
         <DialogActions>
           <Button onClick={() => setPhotoModalOpen(false)}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Confirmación antes de eliminar la foto */}
+      <Dialog
+        open={Boolean(photoToDelete)}
+        onClose={() => {
+          if (deletingPhoto) return;
+          setPhotoToDelete(null);
+          setDeletePhotoError("");
+        }}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>¿Eliminar esta foto?</DialogTitle>
+
+        <DialogContent dividers>
+          <Typography variant="body2">
+            La foto <strong>{photoToDelete?.fileName || "seleccionada"}</strong>{" "}
+            se enviará a la papelera de Google Drive y dejará de aparecer en
+            este vano.
+          </Typography>
+
+          <Typography variant="body2" fontWeight={700} sx={{ mt: 1 }}>
+            ¿Realmente desea eliminarla?
+          </Typography>
+
+          {deletePhotoError && (
+            <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+              {deletePhotoError}
+            </Typography>
+          )}
+        </DialogContent>
+
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setPhotoToDelete(null);
+              setDeletePhotoError("");
+            }}
+            disabled={deletingPhoto}
+          >
+            Cancelar
+          </Button>
+
+          <Button
+            color="error"
+            variant="contained"
+            onClick={handleConfirmDeletePhoto}
+            disabled={deletingPhoto}
+            startIcon={
+              deletingPhoto ? (
+                <CircularProgress size={16} color="inherit" />
+              ) : (
+                <DeleteOutlineIcon />
+              )
+            }
+          >
+            {deletingPhoto ? "Eliminando..." : "Sí, eliminar"}
+          </Button>
         </DialogActions>
       </Dialog>
     </>
