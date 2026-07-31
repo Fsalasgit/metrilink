@@ -134,6 +134,7 @@ export function useMeasurements() {
       tapajunta: "",
       apertura: "",
       embutida: "",
+      revestimiento: "",
       npt: "",
       nota: "",
 
