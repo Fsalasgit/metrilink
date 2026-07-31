@@ -6,6 +6,7 @@ import "./App.css";
 import { useMeasurements } from "./hooks/useMeasurements";
 import { useBluetooth } from "./hooks/useBluetooth";
 import { syncMeasurementsToSheet } from "./services/syncService";
+import { deletePhotoFromDrive } from "./services/photoDeleteService";
 
 import SplashPage from "./pages/SplashPage";
 import ProjectsPage from "./pages/ProjectsPage";
@@ -35,6 +36,7 @@ function App() {
     updateNote,
     updateField,
     addPhotoToMeasurement,
+    removePhotoFromMeasurement,
     clearAll,
   } = useMeasurements();
 
@@ -48,6 +50,22 @@ function App() {
     selectedMeasurement,
     addPhotoToMeasurement,
   });
+
+  const handleDeletePhoto = async (photo) => {
+    const fileId = photo?.fileId;
+
+    if (!selectedMeasurement?.id) {
+      throw new Error("No hay un vano seleccionado.");
+    }
+
+    if (!fileId) {
+      throw new Error("La foto no tiene fileId.");
+    }
+
+    // Primero se elimina de Drive. Recién si Drive confirma, se quita del estado local.
+    await deletePhotoFromDrive(fileId);
+    removePhotoFromMeasurement(selectedMeasurement.id, fileId);
+  };
 
   // función llamada cuando el GLM devuelve una medición
   const handleNewMeasurement = (distance, meta) => {
@@ -167,6 +185,7 @@ function App() {
         uploadingPhoto={uploadingPhoto}
         photoMessage={photoMessage}
         photoError={photoError}
+        onDeletePhoto={handleDeletePhoto}
       />
     );
   }
