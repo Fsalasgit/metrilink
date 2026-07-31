@@ -18,6 +18,8 @@ import {
   Select,
   TextField,
   Typography,
+  Checkbox,
+  FormControlLabel,
 } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import CloseIcon from "@mui/icons-material/Close";
@@ -129,6 +131,7 @@ export default function VanoDetailPage({
   onChangeTapajunta,
   onChangeApertura,
   onChangeEmbutida,
+  onChangeRevestimiento,
   onChangeNpt,
   onManualMeasure,
   onCapturePhoto,
@@ -548,19 +551,33 @@ export default function VanoDetailPage({
                 </Select>
               </FormControl>
 
-              <FormControl fullWidth size="small">
-                <InputLabel id="embutida-label">EMBUTIDA</InputLabel>
-                <Select
-                  labelId="embutida-label"
-                  value={measurement?.embutida || ""}
-                  label="EMBUTIDA"
-                  onChange={(e) => onChangeEmbutida?.(e.target.value)}
-                >
-                  <MenuItem value="">-</MenuItem>
-                  <MenuItem value="SI">SI</MenuItem>
-                  <MenuItem value="NO">NO</MenuItem>
-                </Select>
-              </FormControl>
+              <FormControlLabel
+                label="EMBUTIDA"
+                control={
+                  <Checkbox
+                    checked={measurement?.embutida === "SI"}
+                    onChange={(e) =>
+                      onChangeEmbutida?.(
+                        e.target.checked ? "SI" : "NO"
+                      )
+                    }
+                  />
+                }
+              />
+
+              <FormControlLabel
+                label="REVESTIMIENTO"
+                control={
+                  <Checkbox
+                    checked={measurement?.revestimiento === "SI"}
+                    onChange={(e) =>
+                      onChangeRevestimiento?.(
+                        e.target.checked ? "SI" : "NO"
+                      )
+                    }
+                  />
+                }
+              />
             </Box>
           </Box>
 
