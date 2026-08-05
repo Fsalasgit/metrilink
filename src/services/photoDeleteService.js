@@ -2,7 +2,7 @@
 
 // Usá la URL de la implementación del Apps Script anterior.
 const PHOTO_API_URL =
-  "https://script.google.com/macros/s/AKfycbxTlq_x_BmoOz5ziXa_aF1onqqiEtOZSF2F8ztKQW9AoQ_Sw91fHqXQO-JayhYwQCydLw/exec";
+  "https://script.google.com/macros/s/AKfycbxFCpOVRN8raqlSgyBZ6fVOrm-MCusAO29LIiY9Mjc6hQ4KVL3zsgxrkNSkNLH-2rY17w/exec";
 
 const API_TOKEN = "MI_TOKEN_SEGURO";
 
