@@ -697,7 +697,7 @@ export default function VanoDetailPage({
             }}
           >
             <Typography variant="caption" fontWeight={700} display="block" mb={0.5}>
-              DESVÍO DE VANO (FALSA ESCUADRA)
+              DESVÍO DE VANO 
             </Typography>
 
             <Typography variant="body2" sx={{ mb: 0.5 }}>
