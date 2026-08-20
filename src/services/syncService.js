@@ -1,7 +1,7 @@
 // src/services/syncService.js
 
 const SYNC_URL =
-  "https://script.google.com/macros/s/AKfycbx2ow_Y4glYcBha8_N4vMhDoKU3S4Sbsh3x-pG_20Vj8BJ_c9XtC8gGkdL-GkWrcjc7lg/exec";
+  "https://script.google.com/macros/s/AKfycbyQ9lci7AB13WBmSf9M_0ynW1-yszce9FqldRu4uwOuc_okGXm7lkqe0XDn9_iP-WiCoQ/exec";
 
 export async function syncMeasurementsToSheet(measurements) {
   const payload = {
